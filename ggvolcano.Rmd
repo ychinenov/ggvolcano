@@ -1,0 +1,174 @@
+---
+title: "ggvolcano"
+author: "Yurii Chinenov"
+date: "April 13, 2017"
+output:
+  html_document: default
+  word_document: default
+---
+##ggvolcano##
+
+*ggvolcano* produces "volcano"" plots  ($-log_{10}(p value)$ versus $-log_2(fold change)$) that is commonly used to visualize differentially expressed genes in a two group comparison. *ggvolcano* is a *ggplot*-based function. Besides a basic volcano plot with highlights "significant" diferentially-expressed genes based on user-supplied fold change and p values cutoffs, *ggvolcano* also highlights and labels additional user-supplied gene sets. `ggvolcano` relies on *ggrepel* package by Kamil Slowikowski  to perform gene labeling. (ggrepel: Repulsive Text and Label Geoms for 'ggplot2'. R package version 0.6.5. https://CRAN.R-project.org/package=ggrepel)    
+
+##Usage##
+
+```
+ggvolcano (gene.id=NULL, p.val=NULL, fold.c=NULL, labels="none", de.l=list(),
+           top.list=NULL, cutoff.p=0.01, cutoff.fc=2, logfold.c=T, FDR=T, binhex=F)
+```
+###Arguments###
+
+`gene.id`    A vector of gene names
+
+`p.val`      A vector of *p* values
+
+`fold.c`     A vector of fold changes 
+
+`labels`     A vector of gene names to be labeled on the plot. If `labels="auto"` top 15 genes sorted by p values will be labeled, when `labels="none"` no labels              will be shown
+
+`de.l`       A vector or a list of vectors with gene names that will be shown on the plot as colored circles; when no names supplied genes will be colored     
+             according to p value/fold change cur offs. Each element of the list `de.l` will have unique color.
+
+`top.list`   The number of top genes in each gene set in `de.l` that will be labeled, could be combined with user supplied `label` or `label="auto"`
+
+`cutoff.p`   *p* value cut off. By default cutoff.p=0.01 
+
+`cutoff.fc`   fold change cutoff. By default cutoff.fc = 2
+  
+`logfold.c`   a logical value indicating whether to Log2 transform fold fold change values.By default `logfold.c=TRUE`
+
+`FDR`         a logical value indicating whether *p* values need to be adjusted for multiple comparison. By default `FDR=TRUE`, otherwise `p.addjust()` will be 
+              applied with `method="fdr"`
+
+`binhex`      a logical value indicating whether to bin nearby data points to avoid overplotting. By default `binhex=FALSE`. When `binhex=T`  'ggplot2 geom_hex` 
+              will be used to decrease the number of ploted objects
+
+###Values###
+
+#### ```gene.id``` ####
+
+A character vector. 
+```{r, echo=T, results="hide",message=FALSE}
+library(readr)
+toptag1_2 <- read_csv ("toptag1_2.csv")
+```
+
+```{r, echo=F}
+str (toptag1_2$genes)
+```
+All numeric IDs (e.g. ENTREZID) will be coersed to characters.
+
+#### ```p.val``` ####
+A numeric vector of *p* values or adjusted *p* values, for example:
+```{r, echo=F}
+str (toptag1_2$FDR)
+```
+
+#### ```fold.c``` ####
+A numeric vector of fold changes
+```{r, echo=F}
+str (toptag1_2$Fold.c)
+```
+
+#### Basic volcano plot ####
+```{r, fig.width =9, fig.height =8 }
+ggvolcano (
+  gene.id=toptag1_2$genes, 
+  p.val=toptag1_2$FDR,   
+  fold.c=toptag1_2$Fold.c,   
+  labels="none",
+  de.l=list(),
+  top.list=NULL,
+  cutoff.p=0.01, 
+  cutoff.fc=2,
+  logfold.c=T,   
+  FDR=T,         
+  binhex=F)  
+```
+
+#### A volcano plot with automatic labeling and dot bining:###
+`binhex=T,labels="auto`
+
+To reduce the number of plotted objects *ggvolcano* optionaly maps datapoint to hexagonal bins using `geom_hex`.
+All bins are intentionally colored uniformly gray rather than based on point density as I did not consider this information particularly relevant.
+
+```{r, warning=F, fig.width = 9, fig.height = 8}
+ggvolcano (
+  gene.id=toptag1_2$genes, 
+  p.val=toptag1_2$FDR,   
+  fold.c=toptag1_2$Fold.c,   
+  labels="auto",
+  de.l=list(),
+  top.list=NULL,
+  cutoff.p=0.01, 
+  cutoff.fc=2,
+  logfold.c=T,   
+  FDR=T,         
+  binhex=T)  
+```
+
+#### A volcano plot with overplotting and custom labeling ####
+
+```{r, warning=F, fig.width = 9, fig.height = 8}
+ggvolcano (
+  gene.id=toptag1_2$genes, 
+  p.val=toptag1_2$FDR,   
+  fold.c=toptag1_2$Fold.c,   
+  labels= toptag1_2$genes[grep("^Cxcl",toptag1_2$genes)],
+  de.l=list(),
+  top.list=NULL,
+  cutoff.p=0.01, 
+  cutoff.fc=2,
+  logfold.c=T,   
+  FDR=T,         
+  binhex=T)  
+```
+
+#### Highlighed gene subsets, overplotting control, top 5 genes in each subset and are labeled (top.list=5)  ####
+```{r, warning=F, fig.width = 9, fig.height = 8}
+ggvolcano (
+  gene.id=toptag1_2$genes, 
+  p.val=toptag1_2$FDR,   
+  fold.c=toptag1_2$Fold.c,   
+  labels="none",
+  de.l=list(TNF_halmark,E2F_halmark,MYC_halmark),
+  top.list=3,
+  cutoff.p=0.01, 
+  cutoff.fc=2,
+  logfold.c=T,   
+  FDR=T,         
+  binhex=T)  
+```
+
+#### Highlighed gene subsets, overplotting control, top 5 genes in each subset and user-provided gene set are labeled (top.list=5)  ####
+```{r, warning=F, fig.width = 9, fig.height = 8}
+ggvolcano (
+  gene.id=toptag1_2$genes, 
+  p.val=toptag1_2$FDR,   
+  fold.c=toptag1_2$Fold.c,   
+  labels=toptag1_2$genes[grep("^Cxcl",toptag1_2$genes)],
+  de.l=list(TNF_halmark,E2F_halmark,MYC_halmark),
+  top.list=3,
+  cutoff.p=0.01, 
+  cutoff.fc=2,
+  logfold.c=T,   
+  FDR=T,         
+  binhex=T)  
+```
+
+#### Same as above but all data points shown  ####
+```{r, warning=F, fig.width = 9, fig.height = 8}
+
+ggvolcano (
+  gene.id=toptag1_2$genes, 
+  p.val=toptag1_2$FDR,   
+  fold.c=toptag1_2$Fold.c,   
+  labels=toptag1_2$genes[grep("^Cxcl",toptag1_2$genes)],
+  de.l=list(TNF_halmark,E2F_halmark,MYC_halmark),
+  top.list=3,
+  cutoff.p=0.01, 
+  cutoff.fc=2,
+  logfold.c=T,   
+  FDR=T,         
+  binhex=F)  
+```
