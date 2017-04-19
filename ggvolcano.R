@@ -48,6 +48,8 @@ ggvolcano <- function(gene.id = NULL,
     no.id <- FALSE
   }
   
+  if(is.null(labels)){labels="none"}
+  
   # check and instal required packages
   
   if (!"ggplot2" %in% installed.packages()) {
@@ -131,10 +133,11 @@ ggvolcano <- function(gene.id = NULL,
     labels.t <- df[df$gene.id %in% labels,]
     labels.t$list_name <- "User"
   }
-  # determining max Y for plot scaling
+  # determining max Y and quanttile 75% for plot scaling
   maxY <- max(p.val)
-  
-  #Plotting basic volcano plot here when no subsets to visualize were provided
+  quant4 <- quantile(p.val)[[4]]
+ 
+   #Plotting basic volcano plot here when no subsets to visualize were provided
   if (length(eval(de.l)) == 0 | no.id == T) {
     p <- ggplot() + t2 + ylim(c(-0.4, maxY)) +
     {
@@ -149,7 +152,7 @@ ggvolcano <- function(gene.id = NULL,
       geom_hline(yintercept = -log10(cutoff.p), col = "purple", linetype = "dashed", size = 1 ) +
       geom_vline(xintercept = c(-log2(cutoff.fc), log2(cutoff.fc)), col = "blue",linetype = "dashed", size = 1) +
       geom_text(aes(label = paste0("p=", cutoff.p), x = max(fold.c) - 0.15, y = -log10(cutoff.p) + 0.15),  size = 5) +
-      geom_text(aes(label = paste0(c( paste("-", cutoff.fc, "fold"),paste0("+", cutoff.fc, "fold"))), x = c(-log2(fold) - 1.2, log2(fold) + 1.2), y = (-0.4), size = 5)) +
+      geom_text(aes(label = paste0(c( paste("-", cutoff.fc, "fold"),paste0("+", cutoff.fc, "fold"))), x = c(-log2(cutoff.fc) - 1.2, log2(cutoff.fc) + 1.2), y = (-0.4), size = 5)) +
         {
         if (binhex == T)
         {
@@ -162,7 +165,11 @@ ggvolcano <- function(gene.id = NULL,
       xlab(label = expression(log[2] ~ fold ~ change)) +
       ylab(label = expression(-log[10] ~ p ~ value)) +
       geom_point(data = labels.t, mapping = aes(x = fold.c, y = p.val), size = 7, shape = 1, stroke = 1.2) +
-      geom_label_repel(mapping = aes(x = fold.c, y = p.val, label = gene.id), data = labels.t, nudge_x = ifelse(sign(labels.t$fold.c) == (-1), (-1), 1), force = 2,
+      geom_label_repel(mapping = aes(x = fold.c, y = p.val, label = gene.id), 
+                       data = labels.t, 
+                       force =3,
+                       nudge_x = ifelse(sign(labels.t$fold.c) == -1, -5, 5), 
+                       nudge_y = ifelse(labels.t$p.val > quantile(p.val)[[4]], 2, -2),
                        point.padding = unit(0.7, 'lines')) +
       theme(legend.position = "none")
     
@@ -173,6 +180,7 @@ ggvolcano <- function(gene.id = NULL,
     nm <- unlist(strsplit(nm, ", "))
     de.l <- eval(de.l) # evaluate the expression
     names(de.l) <- nm # and put names from a function call into actual list
+    
     
     # creating a long form dataframe from input list
     a <- list()# This list contains dataframes. Each dataframe contains genes from input input list along with pvalues/fold changes
@@ -209,7 +217,7 @@ ggvolcano <- function(gene.id = NULL,
       geom_vline(xintercept = c(-log2(cutoff.fc), log2(cutoff.fc)), col = "blue", linetype = "dashed", size = 1 ) +
       geom_text(aes(label = paste0("p=", cutoff.p), x = max(fold.c) - 0.15, y = -log10(cutoff.p) + 0.15),  size = 5) +
       geom_text(aes(label = paste0(c(paste("-", cutoff.fc, "fold"), paste0("+", cutoff.fc, "fold"))), 
-                    x = c(-log2(fold) - 1.2, log2(fold) + 1.2) ,y = (-0.4),size = 10)) +
+                    x = c(-log2(cutoff.fc) - 1.2, log2(cutoff.fc) + 1.2) ,y = (-0.4),size = 10)) +
       xlab(label = expression(log[2] ~ fold ~ change)) +
       ylab(label = expression(-log[10] ~ p ~ value)) +
       geom_point(data = a,mapping = aes(x = fold.c, y = p.val, col = list_name),alpha = 0.5, size = 6) +
@@ -223,8 +231,11 @@ ggvolcano <- function(gene.id = NULL,
         }
       } +
       geom_label_repel(mapping = aes(x = fold.c, y = p.val, label = gene.id, col = factor(list_name)),
-                      data = labels.t,nudge_x = ifelse(sign(labels.t$fold.c) == (-1), (-1), 1), force = 2, 
-                      point.padding = unit(0.7, 'lines'), segment.size = 0.75, show.legend = FALSE) +
+                      data = labels.t,
+                      nudge_x = ifelse(sign(labels.t$fold.c) == -1, -5, 5), 
+                      nudge_y = ifelse(labels.t$p.val > quantile(p.val)[[4]], 2, -2), 
+                      force = 1,
+                      point.padding = unit(0.7, 'lines'), segment.size = 0.2, show.legend = FALSE) +
       
       {
         if ("ggsci" %in% installed.packages())  #conditional color choice
