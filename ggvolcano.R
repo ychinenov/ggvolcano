@@ -6,9 +6,14 @@ ggvolcano <- function(gene.id = NULL,
                       top.list = NULL,
                       cutoff.p = 0.01,
                       cutoff.fc = 2,
+                      xlim = vector(),
+                      ylim = vector(),
                       logfold.c = T,
                       FDR = T,
                       binhex = F) {
+  
+  
+  
   #_____________________________________________________________________
   # This function producess pretty volcano plot using ggplot framework
   # the following arguments are currently available
@@ -21,6 +26,8 @@ ggvolcano <- function(gene.id = NULL,
   #top.list=NULL   # when lists of gene to color is given labels top N genes, colors by group
   #cutoff.p=0.01,
   #cutoff.fc=2,
+  #xlim=vector()  #by default will use min(log2(fold.c),max(lof2(fold.c))), otherwise expects a vector c(min,max)
+  #xlim=vector()  #by default
   #logfold.c=T,   #by default assumes that fold change is log2 transformed, otherwise fold.c will be log2 transformed
   #FDR=T,         #by default assumes that p values are FDR, otherwise p.addjust() will be applied with method="fdr"
   #binhex=F){     # if binhex=T geom_hex will be used to bin nearby data points to avoid overplotting
@@ -131,15 +138,24 @@ ggvolcano <- function(gene.id = NULL,
   }   else {
     labels <- unique(labels)
     labels.t <- df[df$gene.id %in% labels,]
-    labels.t$list_name <- "User"
+       if(nrow(labels.t)==0){warning("No matching genes found! Labels will be set to labels=\"auto\"")
+           labels.t <- df[1:20, ]
+           labels.t$list_name <- "User"} else {
+    labels.t$list_name <- "User"}
   }
+  
   # determining max Y and quanttile 75% for plot scaling
   maxY <- max(p.val)
   quant4 <- quantile(p.val)[[4]]
  
+  #seting up xlim/ylim if not provided
+  if(length(xlim) !=2){xlim <- c(min(fold.c),max(fold.c))}
+  if(length(ylim) !=2){ylim <- c(-0.4,max(p.val)) } else if(ylim[1]<0){warning("-log10(p.val) cannot be negative. Reset to 0:max(p.val)"); ylim <-c(-0.4,max(p.val))} 
+    
+    
    #Plotting basic volcano plot here when no subsets to visualize were provided
   if (length(eval(de.l)) == 0 | no.id == T) {
-    p <- ggplot() + t2 + ylim(c(-0.4, maxY)) +
+    p <- ggplot() + xlim(xlim) + ylim(ylim) + t2 +
     {
       if (binhex == F)
       {
@@ -202,7 +218,7 @@ ggvolcano <- function(gene.id = NULL,
         labels.t <- rbind.data.frame(temp, labels.t)
       }
     }
-    p <- ggplot() + t2 + ylim(c(-0.4, maxY)) +
+    p <- ggplot() + xlim(xlim) + ylim(ylim) + t2 +
     {
       if (binhex == F)
       {
@@ -254,3 +270,20 @@ ggvolcano <- function(gene.id = NULL,
   
   return(p)
 }
+
+#p <- ggvolcano(gene.id = toptag[[2]]$genes,
+#                      p.val = toptag[[2]]$`FDR_-1*WT 1*Fcr2bKO`,
+#                      fold.c = toptag[[2]]$`logFC_-1*WT 1*Fcr2bKO`,
+#                      labels = c("Klf2","Klf7","Klf5","Klf9"),
+#                      de.l = list(EMT_hallmark,TNF_halmark,INFLAMMATION_halmark),
+#                      top.list = 5,
+#                      cutoff.p = 0.01,
+#                      cutoff.fc = 2,
+#                      xlim = c(),
+#                      ylim = c(),
+#                      logfold.c = T,
+#                      FDR = T,
+#                      binhex = F) 
+
+#rm(gene.id,p.val,fold.c,labels,de.l,top.list,cutoff.p,cutoff.fc,xlim,ylim,logfold.c,FDR,binhex)
+
