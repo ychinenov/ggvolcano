@@ -10,7 +10,8 @@ ggvolcano <- function(gene.id = NULL,
                       ylim = vector(),
                       logfold.c = T,
                       FDR = T,
-                      binhex = F) {
+                      binhex = F,
+                      size=6) {
   
   
   
@@ -30,8 +31,8 @@ ggvolcano <- function(gene.id = NULL,
   #xlim=vector()  #by default
   #logfold.c=T,   #by default assumes that fold change is log2 transformed, otherwise fold.c will be log2 transformed
   #FDR=T,         #by default assumes that p values are FDR, otherwise p.addjust() will be applied with method="fdr"
-  #binhex=F){     # if binhex=T geom_hex will be used to bin nearby data points to avoid overplotting
-  
+  #binhex=F,     # if binhex=T geom_hex will be used to bin nearby data points to avoid overplotting
+  # size          #size of the "dot"  
   
   #______Checking input data
   
@@ -159,7 +160,7 @@ ggvolcano <- function(gene.id = NULL,
     {
       if (binhex == F)
       {
-        geom_point(mapping = aes( x = fold.c, y = p.val, col = (abs(fold.c) >= log2(cutoff.fc) & p.val > -log10(cutoff.p))), alpha = 0.5, size = 6 )
+        geom_point(mapping = aes( x = fold.c, y = p.val, col = (abs(fold.c) >= log2(cutoff.fc) & p.val > -log10(cutoff.p))), alpha = 0.5, size = size )
       } else
       {
         geom_hex(mapping = aes(x = fold.c, y = p.val), col = "gray85", fill = "gray80",alpha = 0.5, size = 6, bins = (length(gene.id) / 250))
@@ -172,7 +173,7 @@ ggvolcano <- function(gene.id = NULL,
         {
         if (binhex == T)
         {
-          geom_point(data = df, mapping = aes(x = fold.c, y = p.val), col = ifelse((abs(fold.c) >= log2(cutoff.fc) &  p.val > -log10(cutoff.p)), "red", NA), alpha = 0.5, size = 6)
+          geom_point(data = df, mapping = aes(x = fold.c, y = p.val), col = ifelse((abs(fold.c) >= log2(cutoff.fc) &  p.val > -log10(cutoff.p)), "red", NA), alpha = 0.5, size = size)
         } else
         {
           scale_colour_manual(values = c("TRUE" = "red", "FALSE" = "gray"))
@@ -180,7 +181,7 @@ ggvolcano <- function(gene.id = NULL,
       } +
       xlab(label = expression(log[2] ~ fold ~ change)) +
       ylab(label = expression(-log[10] ~ p ~ value)) +
-      geom_point(data = labels.t, mapping = aes(x = fold.c, y = p.val), size = 7, shape = 1, stroke = 1.2) +
+      geom_point(data = labels.t, mapping = aes(x = fold.c, y = p.val), size = size+1, shape = 1, stroke = 1.2) +
       geom_label_repel(mapping = aes(x = fold.c, y = p.val, label = gene.id), 
                        data = labels.t, 
                        force =3,
@@ -222,7 +223,7 @@ ggvolcano <- function(gene.id = NULL,
     {
       if (binhex == F)
       {
-        geom_point(mapping = aes(x = fold.c, y = p.val), alpha = 0.5, size = 6, col = "gray80")
+        geom_point(mapping = aes(x = fold.c, y = p.val), alpha = 0.5, size = size, col = "gray80")
       } else
       {
         geom_hex(mapping = aes(x = fold.c, y = p.val), col = "gray85", fill = "gray80", alpha = 0.5, size = 6, bins = (length(gene.id)/250))
@@ -236,14 +237,14 @@ ggvolcano <- function(gene.id = NULL,
                     x = c(-log2(cutoff.fc) - 1.2, log2(cutoff.fc) + 1.2) ,y = (-0.4),size = 10)) +
       xlab(label = expression(log[2] ~ fold ~ change)) +
       ylab(label = expression(-log[10] ~ p ~ value)) +
-      geom_point(data = a,mapping = aes(x = fold.c, y = p.val, col = list_name),alpha = 0.5, size = 6) +
+      geom_point(data = a,mapping = aes(x = fold.c, y = p.val, col = list_name),alpha = 0.5, size = size) +
       {
         if (binhex == F) # this conditional needs to be collapsed to a single geom. I don't think I need two different appearances.
         {
-          geom_point(data = labels.t, mapping = aes(x = fold.c, y = p.val, col = list_name), size = 7, shape = 1, stroke = 1.2)
+          geom_point(data = labels.t, mapping = aes(x = fold.c, y = p.val, col = list_name), size = size+1, shape = 1, stroke = 1.2)
         } else
         {
-          geom_point(data = labels.t, mapping = aes(x = fold.c, y = p.val, col = list_name), size = 7, shape = 1, stroke = 1.2)
+          geom_point(data = labels.t, mapping = aes(x = fold.c, y = p.val, col = list_name), size = size+1, shape = 1, stroke = 1.2)
         }
       } +
       geom_label_repel(mapping = aes(x = fold.c, y = p.val, label = gene.id, col = factor(list_name)),
@@ -283,7 +284,8 @@ ggvolcano <- function(gene.id = NULL,
 #                      ylim = c(),
 #                      logfold.c = T,
 #                      FDR = T,
-#                      binhex = F) 
+#                      binhex = T,
+#                      size=4) 
 
 #rm(gene.id,p.val,fold.c,labels,de.l,top.list,cutoff.p,cutoff.fc,xlim,ylim,logfold.c,FDR,binhex)
 
