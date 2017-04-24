@@ -151,7 +151,9 @@ ggvolcano <- function(gene.id = NULL,
  
   #seting up xlim/ylim if not provided
   if(length(xlim) !=2){xlim <- c(min(fold.c),max(fold.c))}
-  if(length(ylim) !=2){ylim <- c(-0.4,max(p.val)) } else if(ylim[1]<0){warning("-log10(p.val) cannot be negative. Reset to 0:max(p.val)"); ylim <-c(-0.4,max(p.val))} 
+  if(length(ylim) !=2){ylim <- c(-0.4,max(p.val)) } else if(ylim[1]<0)
+    {warning("-log10(p.val) cannot be negative. Reset to 0:max(p.val)"); ylim <-c(-0.4,max(p.val))} else 
+    { ylim <-c(-0.4,ylim[2])}
     
     
    #Plotting basic volcano plot here when no subsets to visualize were provided
@@ -281,7 +283,7 @@ ggvolcano <- function(gene.id = NULL,
 #                      cutoff.p = 0.01,
 #                      cutoff.fc = 2,
 #                      xlim = c(),
-#                      ylim = c(),
+#                      ylim = c(0,10),
 #                      logfold.c = T,
 #                      FDR = T,
 #                      binhex = T,
