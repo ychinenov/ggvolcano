@@ -11,7 +11,8 @@ ggvolcano <- function(gene.id = NULL,
                       logfold.c = T,
                       FDR = T,
                       binhex = F,
-                      size=6) {
+                      size=6,
+                      main="") {
   
   
   
@@ -187,9 +188,10 @@ ggvolcano <- function(gene.id = NULL,
       geom_label_repel(mapping = aes(x = fold.c, y = p.val, label = gene.id), 
                        data = labels.t, 
                        force =3,
-                       nudge_x = ifelse(sign(labels.t$fold.c) == -1, -5, 5), 
-                       nudge_y = ifelse(labels.t$p.val > quantile(p.val)[[4]], 2, -2),
+                       nudge_x = ifelse(sign(labels.t$fold.c) == -1, -2, 2), 
+                       nudge_y = ifelse(labels.t$p.val > quantile(p.val)[[4]], 1, -1),
                        point.padding = unit(0.7, 'lines')) +
+      ggtitle(label=main)+
       theme(legend.position = "none")
     
   } else {
@@ -268,7 +270,8 @@ ggvolcano <- function(gene.id = NULL,
         }
       } +
       guides(size = F) + #removing legend label for hexagonal bins
-      guides(col = guide_legend(title = "Gene set:", keywidth = 2))
+      guides(col = guide_legend(title = "Gene set:", keywidth = 2))+
+      ggtitle(label=main)
   }
   
   return(p)
